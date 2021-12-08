@@ -130,21 +130,31 @@ def transform(tile, pos):
         return transform(transform(tile, 6), 1)
 
 adjusted = deepcopy(image)
-# Hardcode that 3823 must be flipped vertical
-# Can be not hardcoded but this saves time
-adjusted[1][1] = 38231
-adjusted[1][0] = 10876
-adjusted[0][1] = 36170
-adjusted[0][0] = 25513
+
+check_d, check_r = {}, {}
+for k in range(8):
+    check_d[image[1][0] * 10 + k] = list(b2[image[1][0] * 10 + k])
+    check_r[image[0][1] * 10 + k] = list(b2[image[0][1] * 10 + k])
+for k in range(8):
+    temp = image[0][0] * 10 + k
+    temp_img = transform(d[temp // 10], temp % 10)
+    cnt = 0
+    if temp_img[-1] not in check_d.values():
+        cnt += 1
+    if list(map(lambda x: x[-1], temp_img)) not in check_r.values():
+        cnt += 1
+    if cnt == 0:
+        adjusted[0][0] = temp
+        break
 
 # Left sides
-for i in range(2, size):
+for i in range(1, size):
     for j in range(8):
         temp = transform(d[image[i][0]], j)
         if temp[0] == transform(d[adjusted[i - 1][0] // 10], adjusted[i - 1][0] % 10)[-1]:
             adjusted[i][0] = image[i][0] * 10 + j
 # Up sides
-for i in range(2, size):
+for i in range(1, size):
     for j in range(8):
         temp = transform(d[image[0][i]], j)
         if list(map(lambda x: x[0], temp)) == list(map(lambda x: x[-1], transform(d[adjusted[0][i - 1] // 10], adjusted[0][i - 1] % 10))):
@@ -152,12 +162,11 @@ for i in range(2, size):
 # The rest
 for i in range(1, size):
     for j in range(1, size):
-        if i * j != 1:
-            for k in range(8):
-                temp = transform(d[image[i][j]], k)
-                if temp[0] == transform(d[adjusted[i - 1][j] // 10], adjusted[i - 1][j] % 10)[-1] and \
-                    list(map(lambda x: x[0], temp)) == list(map(lambda x: x[-1], transform(d[adjusted[i][j - 1] // 10], adjusted[i][j - 1] % 10))):
-                        adjusted[i][j] = image[i][j] * 10 + k
+        for k in range(8):
+            temp = transform(d[image[i][j]], k)
+            if temp[0] == transform(d[adjusted[i - 1][j] // 10], adjusted[i - 1][j] % 10)[-1] and \
+                list(map(lambda x: x[0], temp)) == list(map(lambda x: x[-1], transform(d[adjusted[i][j - 1] // 10], adjusted[i][j - 1] % 10))):
+                    adjusted[i][j] = image[i][j] * 10 + k
 
 def deborder(tile):
     return list(map(lambda x: x[1:-1], tile[1:-1]))
@@ -182,7 +191,26 @@ for i in range(size):
  #  #  #  #  #  #   
 """
 
-trans_map = transform(new_map, 4) # found by checking k = 0...7
+for k in range(8):
+    trans_map = transform(new_map, k)
+    cnt = 0
+    for i in range(len(trans_map) - 2):
+        for j in range(len(trans_map[0]) - 19):
+            tags = [
+                (0, 18), (1, 0), (1, 5), (1, 6), (1, 11),
+                (1, 12), (1, 17), (1, 18), (1, 19), (2, 1),
+                (2, 4), (2, 7), (2, 10), (2, 13), (2, 16)
+            ]
+            found = True
+            for di, dj in tags:
+                if trans_map[i + di][j + dj] != "#":
+                    found = False
+                    break
+            if found:
+                cnt += 1
+    if cnt != 0:
+        break
+trans_map = transform(new_map, k)
 for i in range(len(trans_map) - 2):
     for j in range(len(trans_map[0]) - 19):
         tags = [
