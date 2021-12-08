@@ -131,10 +131,12 @@ def transform(tile, pos):
 
 adjusted = deepcopy(image)
 # Hardcode that 3823 must be flipped vertical
+# Can be not hardcoded but this saves time
 adjusted[1][1] = 38231
 adjusted[1][0] = 10876
 adjusted[0][1] = 36170
 adjusted[0][0] = 25513
+
 # Left sides
 for i in range(2, size):
     for j in range(8):
